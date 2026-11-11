@@ -14,9 +14,6 @@ on:
           - pagi
           - sore
 
-permissions:
-  contents: read
-
 jobs:
   presensi:
     name: Eksekusi Presensi ELSA BRIN
@@ -43,7 +40,7 @@ jobs:
           ELSA_EMAIL: ${{ secrets.ELSA_EMAIL }}
           ELSA_PASSWORD: ${{ secrets.ELSA_PASSWORD }}
           PAYLOAD_MODE: ${{ github.event.client_payload.mode }}
-          INPUT_MODE: ${{ inputs.mode }}
+          INPUT_MODE: ${{ github.event.inputs.mode }}
           GITHUB_ACTIONS: "true"
         run: |
           MODE="$PAYLOAD_MODE"
