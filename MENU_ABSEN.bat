@@ -26,27 +26,23 @@ echo  [1] Install Semua Kebutuhan (Playwright, OCR, Pillow)
 echo  [2] Tes Absen PAGI Sekarang (Laptop Lokal)
 echo  [3] Tes Absen SORE Sekarang (Laptop Lokal)
 echo  [4] Tes Login Otomatis + Baca CAPTCHA
-echo  [5] Simpan ^& Kirim Pembaruan ke GitHub (Auto Push)
 echo.
-echo  --- PANDUAN CEPAT SETUP CLOUD (UNTUK PENGGUNA BARU) ---
-echo  [6] Buka Halaman Input Secrets di GitHub Repositori Anda
-echo  [7] Buat Personal Access Token (PAT) Baru di GitHub
-echo  [8] Buka Dashboard cron-job.org (Pengatur Waktu Presisi)
-echo  [9] Buka Halaman Presensi ELSA BRIN
+echo  --- PENGATURAN OTOMATIS LAPTOP (TANPA BAYAR / GRATIS) ---
+echo  [5] Simpan Email ^& Password Akun Anda (Tersimpan Aman di Laptop)
+echo  [6] Pasang / Aktifkan Jadwal Otomatis Windows (07:58 ^& 16:00 WIB)
+echo  [7] Buka Halaman Presensi ELSA BRIN di Browser
 echo  [0] Keluar
 echo.
 echo ========================================================
-set /p opt="Pilih nomor menu [0-9]: "
+set /p opt="Pilih nomor menu [0-7]: "
 
 if "%opt%"=="1" goto INSTALL
 if "%opt%"=="2" goto ABSEN_PAGI
 if "%opt%"=="3" goto ABSEN_SORE
 if "%opt%"=="4" goto TEST_CAPTCHA
-if "%opt%"=="5" goto PUSH_GIT
-if "%opt%"=="6" goto OPEN_SECRETS_AUTO
-if "%opt%"=="7" goto OPEN_PAT_NEW
-if "%opt%"=="8" goto OPEN_CRONJOB
-if "%opt%"=="9" goto OPEN_WEB
+if "%opt%"=="5" goto SAVE_ENV
+if "%opt%"=="6" goto SETUP_SCHEDULE
+if "%opt%"=="7" goto OPEN_WEB
 if "%opt%"=="0" exit
 goto MENU
 
@@ -81,46 +77,43 @@ echo [INFO] Menguji coba login mandiri & pemecah CAPTCHA...
 pause
 goto MENU
 
-:PUSH_GIT
+:SAVE_ENV
 cls
-echo [INFO] Menyimpan dan mengirim pembaruan ke GitHub...
-git add .
-set /p commit_msg="Masukkan pesan update (tekan Enter jika default): "
-if "%commit_msg%"=="" set commit_msg=Update script otomatis presensi
-git commit -m "%commit_msg%"
-git push
+echo ========================================================
+echo        SIMPAN EMAIL & PASSWORD KE FILE LOKAL (.env)
+echo ========================================================
+echo Password hanya disimpan di laptop Anda sendiri (tidak di-upload ke internet).
 echo.
-echo [SELESAI] Kode berhasil disinkronkan ke GitHub Anda!
-pause
-goto MENU
+set /p input_email="Masukkan Email ELSA BRIN: "
+set /p input_pass="Masukkan Password ELSA BRIN: "
 
-:OPEN_SECRETS_AUTO
-cls
-echo [INFO] Mendeteksi URL repositori GitHub Anda saat ini...
-for /f "tokens=*" %%a in ('git config --get remote.origin.url') do set REPO_URL=%%a
-
-if "%REPO_URL%"=="" (
-    echo [INFO] URL Git belum terkonfigurasi. Membuka halaman login GitHub...
-    start https://github.com
+if "%input_email%"=="" (
+    echo [!] Email tidak boleh kosong.
+    pause
+    goto MENU
+)
+if "%input_pass%"=="" (
+    echo [!] Password tidak boleh kosong.
     pause
     goto MENU
 )
 
-:: Bersihkan format git url jika berawalan git@ atau diakhiri .git
-set REPO_URL=%REPO_URL:.git=%
-set REPO_URL=%REPO_URL:git@github.com:=https://github.com/%
-set REPO_URL=%REPO_URL:https://.*@github.com/=https://github.com/%
+echo ELSA_EMAIL=%input_email%> "%~dp0.env"
+echo ELSA_PASSWORD=%input_pass%>> "%~dp0.env"
 
-echo Membuka halaman Secrets untuk repositori: %REPO_URL%
-start %REPO_URL%/settings/secrets/actions
+echo.
+echo [SUKSES] Akun berhasil disimpan ke file .env di laptop Anda!
+echo Mulai sekarang, jadwal otomatis dapat berjalan tanpa perlu mengetik password lagi.
+pause
 goto MENU
 
-:OPEN_PAT_NEW
-start https://github.com/settings/tokens/new?description=cron-trigger^&scopes=repo,workflow
-goto MENU
-
-:OPEN_CRONJOB
-start https://cron-job.org
+:SETUP_SCHEDULE
+cls
+echo [INFO] Memasang Jadwal Otomatis di Windows Task Scheduler...
+powershell -ExecutionPolicy Bypass -File "%~dp0setup_jadwal.ps1"
+echo.
+echo [SELESAI] Komputer Anda sudah dijadwalkan otomatis absen jam 07:58 WIB & 16:00 WIB!
+pause
 goto MENU
 
 :OPEN_WEB

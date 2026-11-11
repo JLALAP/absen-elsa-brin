@@ -2,10 +2,26 @@ import os
 import random
 
 # ==========================================
+# LOAD DARI FILE .ENV JIKA ADA
+# ==========================================
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(env_path):
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    if k and v and k not in os.environ:
+                        os.environ[k] = v
+    except Exception as e:
+        print(f"[!] Warning: Gagal membaca file .env: {e}")
+
+# ==========================================
 # KONFIGURASI AKUN & KREDENSIAL
 # ==========================================
-# Mengambil dari Environment Variable (GitHub Actions Secret) 
-# atau diisi langsung / lewat file .env untuk pengetesan lokal.
 ELSA_EMAIL = os.environ.get("ELSA_EMAIL", "")
 ELSA_PASSWORD = os.environ.get("ELSA_PASSWORD", "")
 
@@ -20,7 +36,6 @@ URL_AKUN = "https://elsa.brin.go.id/akun"
 # SIMULASI GEOLOKASI (KST BJ HABIBIE SERPONG)
 # ==========================================
 # Koordinat Pusat Kawasan Sains dan Teknologi B.J. Habibie BRIN Serpong (Puspiptek):
-# Lat: -6.3653, Lon: 106.6661
 BASE_LAT = -6.365312
 BASE_LON = 106.666145
 
@@ -29,7 +44,6 @@ def get_natural_coordinates():
     Menghasilkan variasi koordinat acak natural (5 - 15 meter)
     agar jejak lokasi tidak statis kaku seperti bot.
     """
-    # 0.00001 derajat lat/lon ~ 1.1 meter
     jitter_lat = random.uniform(-0.00008, 0.00008)
     jitter_lon = random.uniform(-0.00008, 0.00008)
     lat = round(BASE_LAT + jitter_lat, 6)

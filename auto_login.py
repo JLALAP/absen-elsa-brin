@@ -14,8 +14,8 @@ from config import (
 )
 
 def get_credentials():
-    email = ELSA_EMAIL
-    password = ELSA_PASSWORD
+    email = os.environ.get("ELSA_EMAIL", "") or ELSA_EMAIL
+    password = os.environ.get("ELSA_PASSWORD", "") or ELSA_PASSWORD
 
     # Jika belum ada di environment variable / config, minta input interaktif
     if not email:
@@ -32,7 +32,6 @@ def solve_captcha(ocr_engine, page):
         captcha_el.wait_for(state="visible", timeout=10000)
         img_bytes = captcha_el.screenshot()
         result = ocr_engine.classification(img_bytes)
-        # Bersihkan hasil (biasanya alfanumerik / angka)
         clean_code = "".join(ch for ch in result if ch.isalnum())
         return clean_code
     except Exception as e:
@@ -89,10 +88,8 @@ def login_elsa(page, email, password, max_retries=3):
                 print(f"[!] Pesan respon sistem: {msg}")
 
             print("[-] Login belum berhasil, mencoba ulang...")
-            # Refresh captcha jika ada tombol reload captcha atau reload page
             page.wait_for_timeout(1000)
         else:
-            # Jika sudah di elsa.brin.go.id dan tidak minta login lagi
             if "elsa.brin.go.id" in page.url:
                 print("[+] Sudah dalam sesi login.")
                 return True
@@ -111,7 +108,6 @@ def test_auto_login():
     print(f"[*] Menyiapkan browser dengan emulasi GPS Serpong ({lat}, {lon})...")
 
     with sync_playwright() as p:
-        # Jalankan dengan mode GUI (headless=False) agar pengguna bisa melihat prosesnya
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(
             user_agent=USER_AGENT,
@@ -124,7 +120,6 @@ def test_auto_login():
         success = login_elsa(page, email, password)
         if success:
             print("[SUKSES] Pengujian login otomatis dan OCR CAPTCHA berhasil sempurna!")
-            # Tahan beberapa detik agar user melihat dashboard
             page.wait_for_timeout(5000)
         else:
             print("[GAGAL] Login tidak berhasil. Mohon periksa kembali email & password Anda.")
