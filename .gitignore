@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables & secrets (JANGAN PERNAH DI-COMMIT)
+.env
+*.env.local
+
+# Screenshot bukti absen lokal
+bukti_absen_*.png
+error_*.png
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# OS specific
+Thumbs.db
+.DS_Store

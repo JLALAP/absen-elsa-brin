@@ -1,0 +1,55 @@
+name: Otomasi Presensi ELSA BRIN
+
+on:
+  repository_dispatch:
+    types: [trigger-absen]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Mode Presensi (pagi / sore)'
+        required: true
+        default: 'pagi'
+        type: choice
+        options:
+          - pagi
+          - sore
+
+jobs:
+  presensi:
+    name: Eksekusi Presensi ELSA BRIN
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repositori
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright ddddocr Pillow
+          python -m playwright install --with-deps chromium
+
+      - name: Eksekusi Script Presensi
+        env:
+          ELSA_EMAIL: ${{ secrets.ELSA_EMAIL }}
+          ELSA_PASSWORD: ${{ secrets.ELSA_PASSWORD }}
+          GITHUB_ACTIONS: "true"
+        run: |
+          MODE="${{ github.event.client_payload.mode || inputs.mode || 'pagi' }}"
+          echo "Menjalankan presensi mode: $MODE"
+          python absen.py --mode "$MODE"
+
+      - name: Unggah Bukti Screenshot (Jika Ada)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bukti-presensi-${{ github.run_id }}
+          path: "*.png"
+          retention-days: 7
